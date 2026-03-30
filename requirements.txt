@@ -1,0 +1,13 @@
+# Project dependencies
+fastapi
+uvicorn
+yt-dlp
+pydub
+python-multipart
+
+# torch
+# numpy
+# soundfile
+# deepfilternet
+# ffmpeg-python
+# python-multipart

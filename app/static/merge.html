@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Merge Audios</title>
+
+<style>
+
+/* ================= BASE ================= */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #dfe9f3, #ffffff);
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ================= CENTER CARD ================= */
+.center-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.card {
+    background: white;
+    padding: 45px;
+    border-radius: 18px;
+    width: 500px;
+    text-align: center;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+}
+
+input, select, button {
+    width: 100%;
+    margin-bottom: 14px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 15px;
+    padding: 12px 14px;
+    box-sizing: border-box;
+}
+
+.card button {
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    color: white;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    height: 46px;
+}
+
+button:disabled {
+    background: #aaa;
+}
+
+#status {
+    min-height: 20px;
+    font-size: 14px;
+}
+
+#fileInfo {
+    font-size: 13px;
+    text-align: left;
+    margin-bottom: 12px;
+}
+
+.file-remove {
+    color: red;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* ================= RIGHT PANEL ================= */
+.right-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 340px;
+    height: 100vh;
+    padding: 25px;
+    background: linear-gradient(180deg, #f8fbff, #eaf3ff);
+    overflow-y: auto;
+    border-left: 1px solid rgba(0,0,0,0.05);
+}
+
+.audio-item {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.audio-item audio {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.audio-item a {
+    display: block;
+    margin-top: 10px;
+    padding: 8px;
+    background: linear-gradient(90deg, #4facfe, #00c6ff);
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.delete-btn {
+    margin-top: 8px;
+    background: linear-gradient(90deg, #ff7b7b, #ff4d4d);
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- CENTER CARD -->
+<div class="center-wrapper">
+    <div class="card">
+        <h2>🎵 Merge Audios</h2>
+
+        <input type="file" id="audioFiles" accept=".mp3,.wav" multiple onchange="addFiles()">
+        <div id="fileInfo"></div>
+
+        <select id="format">
+            <option value="mp3">MP3</option>
+            <option value="wav">WAV</option>
+        </select>
+
+        <button id="mergeBtn" onclick="mergeAudio()">Merge Audio</button>
+        <p id="status"></p>
+    </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+    <h3>Merged Audios</h3>
+    <div id="audioList"></div>
+</div>
+
+<script>
+
+let selectedFiles = [];
+
+/* ================= ADD FILES ================= */
+function addFiles() {
+    const input = document.getElementById("audioFiles");
+
+    for (let i = 0; i < input.files.length; i++) {
+        selectedFiles.push(input.files[i]);
+    }
+
+    input.value = "";
+    renderFileList();
+}
+
+/* ================= RENDER FILE LIST ================= */
+function renderFileList() {
+
+    const fileInfo = document.getElementById("fileInfo");
+
+    if (selectedFiles.length === 0) {
+        fileInfo.innerHTML = "";
+        return;
+    }
+
+    let html = `<strong>${selectedFiles.length} file(s) selected:</strong><br><br>`;
+
+    selectedFiles.forEach((file, index) => {
+        html += `
+            • ${file.name}
+            <button class="file-remove" onclick="removeFile(${index})">X</button>
+            <br>
+        `;
+    });
+
+    fileInfo.innerHTML = html;
+}
+
+function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    renderFileList();
+}
+
+/* ================= MERGE ================= */
+async function mergeAudio() {
+
+    const btn = document.getElementById("mergeBtn");
+    const status = document.getElementById("status");
+    const format = document.getElementById("format").value;
+
+    if (selectedFiles.length < 2) {
+        status.innerText = "❌ Please select at least 2 audio files";
+        return;
+    }
+
+    btn.disabled = true;
+    status.innerText = "⏳ Merging...";
+
+    const formData = new FormData();
+    formData.append("output_format", format);
+
+    selectedFiles.forEach(file => {
+        formData.append("files", file);
+    });
+
+    try {
+        const res = await fetch("/merge-audio", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.status === "success") {
+            addAudioItem(data.filename);
+            selectedFiles = [];
+            renderFileList();
+            status.innerText = "✅ Merge Complete";
+        } else {
+            status.innerText = "❌ " + data.message;
+        }
+
+    } catch (err) {
+        status.innerText = "❌ Server Error";
+    }
+
+    btn.disabled = false;
+}
+
+/* ================= HISTORY PANEL ================= */
+function addAudioItem(filename) {
+
+    const list = document.getElementById("audioList");
+    const audioUrl = `/download/${filename}`;
+
+    const div = document.createElement("div");
+    div.className = "audio-item";
+
+    div.innerHTML = `
+        <strong>🎵 Merged Audio</strong>
+        <audio controls src="${audioUrl}"></audio>
+        <a href="${audioUrl}" download>Download</a>
+        <button class="delete-btn">Delete</button>
+    `;
+
+    div.querySelector(".delete-btn").onclick = async () => {
+        await fetch(`/delete/${filename}`, { method: "DELETE" });
+        div.remove();
+    };
+
+    list.prepend(div);
+}
+
+async function loadMergeHistory() {
+    const res = await fetch("/history/merge");
+    const data = await res.json();
+    data.reverse().forEach(item => addAudioItem(item.filename));
+}
+
+window.onload = loadMergeHistory;
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Audio Processing Tools</title>
+
+    <!-- ALL CSS IS INSIDE THIS FILE -->
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            height: 100vh;
+            background: linear-gradient(120deg, hwb(235 70% 12%), hwb(235 70% 12%));
+        }
+
+        /* MAIN LAYOUT */
+        .layout {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* LEFT PANEL */
+        .sidebar {
+            width: 260px;
+            background: rgba(0, 0, 0, 0.45);
+            padding: 20px;
+            color: white;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .nav-card {
+            background: linear-gradient(135deg, #00e6e6, #4facfe);
+            color: #000;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,230,230,0.4);
+        }
+
+        /* MAIN CONTENT AREA */
+        .content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">          
+
+    <!-- LEFT SIDE PANEL (CONSISTENT) -->
+    <div class="sidebar">
+        <h2> Audio Tools</h2>
+
+        <div class="nav-card" onclick="location.href='/audio'">
+             YouTube to Audio
+        </div>
+
+        <div class="nav-card" onclick="location.href='/noise-removal'">
+             Audio Noise Removal
+        </div>
+
+        <div class="nav-card" onclick="location.href='/merge'">
+            Merge Audio
+        </div>
+
+        <div class="nav-card" onclick="location.href='/type-converter'">
+            Audio Type Converter
+        </div>
+
+        <div class="nav-card" onclick="location.href='/extend-audio'">
+            Extend Audio Duration
+        </div>
+
+    </div>
+
+    <!-- MAIN CONTENT (WILL CHANGE) -->
+    <div class="content">
+        {{CONTENT}}
+    </div>
+
+</div>
+
+</body>
+</html>
